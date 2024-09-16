@@ -6,7 +6,7 @@
 #include "G4Cons.hh"
 #include "G4Orb.hh"
 #include "G4Sphere.hh"
-#include "G4Cons"
+#include "G4Cons.hh"
 #include "G4Trd.hh"
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
@@ -46,11 +46,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4Element* elAl = new G4Element("Aluminium", "Al", z = 13., a = 26.98 * g / mole);
 	G4Element* elB = new G4Element("Boron", "B", z = 5., a = 10.812 * g / mole);
 	G4Element* elFe = new G4Element("Ferrum", "Fe", z = 26., a = 55.85 * g / mole);
-	G4Element* elF = new G4Element("Fluor", "F", z = 17., a = 18.99 * g / mole);
+	G4Element* elF = new G4Element("Fluor", "F", z = 9., a = 18.99 * g / mole);
 	G4Element* elNa = new G4Element("Sodium", "Na", z = 11., a = 22.99 * g / mole);
 	G4Element* elHg = new G4Element("Mercury", "Hg", z = 80., a = 200.59 * g / mole);
 	G4Element* elK = new G4Element("Kalium", "K", z = 19., a = 39.1 * g / mole);
-	G4Element* elCa = new G4Element("Calcium", "Ca", z = 31., a = 69.72 * g / mole);
+	G4Element* elCa = new G4Element("Calcium", "Ca", z = 20., a = 40.08 * g / mole);
 
 	//Air
 	G4Material* Air = new G4Material("MAir", density = 1.290 * mg / cm3, ncomponents = 2);
@@ -62,30 +62,39 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	Water->AddElement(elH, nelements = 2);
 	Water->AddElement(elO, nelements = 2);
 
+	//Aluminium
+	G4Material* AlMaterial = new G4Material("MAluminium", z = 13., a = 26.98 * g / mole, density = 2.7 * g / cm3);
+
 	//Standart rock
-	G4MAterial* StRock = new G4Material("StandartRock", z = 11., a = 22. g / mole, density = 2.1 g / cm3);
+	G4Material* Soil = new G4Material("Soil", z = 11., a = 22. * g / mole, density = 2.1 * g / cm3);
 
 	//Concrete
+	G4Material* HMaterial = new G4Material("Hydrogen_mat", z = 1., a = 1.01 * g / mole, density = 0.08 * mg / cm3);
+	G4Material* OMaterial = new G4Material("Oxygen_mat", z = 8., a = 16.00 * g / mole, density = 1.332 * mg / cm3);
+	G4Material* NaMaterial = new G4Material("Sodium_mat", z = 11., a = 22.99 * g / mole, density = 0.971 * g / cm3);
+	G4Material* HgMaterial = new G4Material("Mercury_mat", z = 80., a = 200.59 * g / mole, density = 13.55 * g / cm3);
+	G4Material* SiMaterial = new G4Material("Silicon_mat", z = 14., a = 28.09 * g / mole, density = 2.329 * g / cm3);
+	G4Material* KMaterial = new G4Material("Kalium_mat", z = 19., a = 39.1 * g / mole, density = 0.862 * g / cm3);
+	G4Material* CaMaterial = new G4Material("Calcium_mat", z = 20., a = 40.08 * g / mole, density = 1.55 * g / cm3);
+	G4Material* FeMaterial = new G4Material("Ferrum_mat", z = 26., a = 55.85 * g / mole, density = 7.87 * g / cm3);
+	G4Material* CMaterial = new G4Material("Carbon_mat", z = 6., a = 12.01 * g / mole, density = 2. * g / cm3);
+
 	G4Material* Concrete = new G4Material("Concrete", density = 2.3 * g / cm3, ncomponents = 10);
-  	Concrete->AddElement(elH, fractionmass = 0.01 * perCent);
-  	Concrete->AddElement(elO, fractionmass = 0.529 * perCent);
-  	Concrete->AddElement(elNa, fractionmass = 0.016 * perCent);
-  	Concrete->AddElement(elHg, fractionmass = 0.002 * perCent);
-  	Concrete->AddElement(elAl, fractionmass = 0.034 * perCent);
-  	Concrete->AddElement(elSi, fractionmass = 0.337 * perCent);
-  	Concrete->AddElement(elK, fractionmass = 0.013 * perCent);
-  	Concrete->AddElement(elCa, fractionmass = 0.044 * perCent);
-  	Concrete->AddElement(elFe, fractionmass = 0.014 * perCent);
-  	Concrete->AddElement(elC, fractionmass = 0.001 * perCent);
+  	Concrete->AddMaterial(HMaterial, fractionmass = 0.01 * perCent);
+  	Concrete->AddMaterial(OMaterial, fractionmass = 0.529 * perCent);
+  	Concrete->AddMaterial(NaMaterial, fractionmass = 0.016 * perCent);
+  	Concrete->AddMaterial(HgMaterial, fractionmass = 0.002 * perCent);
+  	Concrete->AddMaterial(AlMaterial, fractionmass = 0.034 * perCent);
+  	Concrete->AddMaterial(SiMaterial, fractionmass = 0.337 * perCent);
+  	Concrete->AddMaterial(KMaterial, fractionmass = 0.013 * perCent);
+  	Concrete->AddMaterial(CaMaterial, fractionmass = 0.044 * perCent);
+  	Concrete->AddMaterial(FeMaterial, fractionmass = 0.014 * perCent);
+  	Concrete->AddMaterial(CMaterial, fractionmass = 0.001 * perCent);
 
 	//Polyethylene
-	G4Material* C2H4 = new G4Material("Polyethylene", density = 0.89 g / cm3, ncomponents = 2);
+	G4Material* C2H4 = new G4Material("Polyethylene", density = 0.89 * g / cm3, ncomponents = 2);
 	C2H4->AddElement(elC, nelements = 2);
-	C2H4->addElement(elH, nelements = 4);
-
-
-	//Aluminium
-	G4Material* AlMaterial = new G4Material("MAluminium", z = 13., a = 26.98 * g / mole, density = 2.8 * g / cm3);
+	C2H4->AddElement(elH, nelements = 4);
 
 	//BoronSilicate Glass
 	G4Material* SiO2 = new G4Material("MSiO2", density = 2.1 * g / cm3, ncomponents = 2);
@@ -102,17 +111,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	Na2O->AddElement(elO, nelements = 1);
 
 	G4Material* BoronSilicateGlass = new G4Material("PMTGlass", density = 2.5 * g / cm3, ncomponents = 4);
-	PhotCat->AddMaterial(SiO2, fractionmass = 80. * perCent);
-	PhotCat->AddMaterial(B2O3, fractionmass = 14. * perCent);
-	PhotCat->AddMaterial(Al2O3, fractionmass = 4. * perCent);
-	PhotCat->AddMaterial(Na2O, fractionmass = 2. * perCent);
+	BoronSilicateGlass->AddMaterial(SiO2, fractionmass = 80. * perCent);
+	BoronSilicateGlass->AddMaterial(B2O3, fractionmass = 14. * perCent);
+	BoronSilicateGlass->AddMaterial(Al2O3, fractionmass = 4. * perCent);
+	BoronSilicateGlass->AddMaterial(Na2O, fractionmass = 2. * perCent);
 
 	
 	/*	OPTICAL PROPERTIES */
 
 
 	/*	CHERENKOV WATER TANK	*/
-	G4bool checkOverlaps = false;
+	G4bool checkOverlaps = true;
 
 	//World
 	G4double world_sizeX = 7 * m;
@@ -128,28 +137,65 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4double MountUpInnerRad = 0. * m, MountDownInnerRad = 0. * m;
 	G4double MountUpOuterRad = 0.61 * m;
 	G4double MountDownOuterRad = 2.61 * m;
-	G4double MountHeight = 1. * m;
+	G4double MountHeight = 2. * m;
 	G4double StartPhi = 0. * deg, StopPhi = 360. * deg;
 
 	//Soil cylinder dimensions
 	G4double CylInnerRad = 0. * m, CylOuterRad = 2.61 * m;
-	G4double MountHeight = 1. * m;
-	G4double StartPhi = 0. * deg, StopPhi = 360. * deg;
+	G4double CylHeight = 1. * m;
 
 	//Concrete tank dimensions
-	G4double TankInnerRad = 0. * m, TankOuterRad = 0.61 * cm;
-	G4double TankHeight = 0.5 * m;
+	G4double TankInnerRad = 0. * m, TankOuterRad = 0.610 * m;
+	G4double TankHeight = CylHeight;
+	G4double TankThickness = 0.01 * mm;
 
 	//Polyethylene film dimensions
 	G4double PEFilmInnerRad = 0. * m, PEFilmOuterRad = 0.6 * m;
-	G4double PEFilmHeight = 0.5 * m;
+	G4double PEFilmHeight = TankHeight - TankThickness;
 	G4double PEFilmThickness = 0.2 * mm;
 
 	//Water volume dimensions
 	G4double WaterInnerRad = 0. * m, WaterOuterRad = PEFilmOuterRad - PEFilmThickness;
-	G4double WaterHeight = 0.5 * m;
+	G4double WaterHeight = PEFilmHeight - PEFilmThickness;
 
 	//PMT glass dimensions 
+
+	//Coordinates
+	G4double XCyl = 0. * m, YCyl = 0. * m, ZCyl = 0. * m;												//Soil cylinder coordinates
+	G4double XMount = XCyl, YMount = YCyl, ZMount = 0.5 * (CylHeight + MountHeight) + TankThickness;	//Soil mount coordinates
+	G4double XTank = XCyl, YTank = YCyl, ZTank = ZCyl;													//Concrete tank coordinates
+	G4double XPEFilm = XCyl, YPEFilm = YCyl, ZPEFilm = ZCyl;											//Concrete tank coordinates
+	G4double XWater = XCyl, YWater = YCyl, ZWater = ZCyl;												//Concrete tank coordinates
+
+	//Volumes
+	G4Cons* solidSoilMount = {nullptr};
+
+	G4Tubs* solidSoilCylinder = {nullptr}, * solidTank = {nullptr}, * solidWaterVolume = {nullptr}, * solidPEFilm = {nullptr};
+
+	G4LogicalVolume* logicSoilMount = {nullptr}, * logicSoilCylinder = {nullptr}, * logicTank = {nullptr}, * logicWaterVolume = {nullptr}, * logicPEFilm = {nullptr};
+
+	G4VPhysicalVolume* physSoilMount = {nullptr}, * physSoilCylinder = {nullptr}, * physTank = {nullptr}, * physWaterVolume = {nullptr}, * physPEFilm = {nullptr};
+
+	//Building water tank
+	solidSoilCylinder = new G4Tubs("Cyl_s", CylInnerRad, CylOuterRad, 0.5 * CylHeight, StartPhi, StopPhi);
+	logicSoilCylinder = new G4LogicalVolume(solidSoilCylinder, Soil, "Cyl_l");
+	physSoilCylinder = new G4PVPlacement(0, G4ThreeVector(XCyl, YCyl, ZCyl), logicSoilCylinder, "SOIL_CYLINDER", logicWorld, false, 0, checkOverlaps);
+
+	solidSoilMount = new G4Cons("Mount_s", MountDownInnerRad, MountDownOuterRad, MountUpInnerRad, MountUpOuterRad, 0.5 * MountHeight, StartPhi, StopPhi);
+	logicSoilMount = new G4LogicalVolume(solidSoilMount, Soil, "Cyl_l");
+	physSoilMount = new G4PVPlacement(0, G4ThreeVector(XMount, YMount, ZMount), logicSoilMount, "SOIL_MOUNT", logicWorld, false, 0, checkOverlaps);
+
+	solidTank = new G4Tubs("Tank_s", TankInnerRad, TankOuterRad, 0.5 * TankHeight, StartPhi, StopPhi);
+	logicTank = new G4LogicalVolume(solidTank, Concrete, "Tank_l");
+	physTank = new G4PVPlacement(0, G4ThreeVector(XTank, YTank, ZTank), logicTank, "CONCRETE_TANK", logicSoilCylinder, false, 0, checkOverlaps);
+
+	solidPEFilm = new G4Tubs("PEFilm_s", PEFilmInnerRad, PEFilmOuterRad, 0.5 * PEFilmHeight, StartPhi, StopPhi);
+	logicPEFilm = new G4LogicalVolume(solidPEFilm, C2H4, "PEFilm_l");
+	physPEFilm = new G4PVPlacement(0, G4ThreeVector(XPEFilm, YPEFilm, ZPEFilm), logicPEFilm, "POLYETHYLENE_FILM", logicTank, false, 0, checkOverlaps);
+
+	solidWaterVolume = new G4Tubs("Water_s", WaterInnerRad, WaterOuterRad, 0.5 * WaterHeight, StartPhi, StopPhi);
+	logicWaterVolume = new G4LogicalVolume(solidWaterVolume, Water, "Water_l");
+	physWaterVolume = new G4PVPlacement(0, G4ThreeVector(XWater, YWater, ZWater), logicWaterVolume, "WATER_VOLUME", logicPEFilm, false, 0, checkOverlaps);
 
 
 	return physWorld;
