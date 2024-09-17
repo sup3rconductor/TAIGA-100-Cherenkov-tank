@@ -69,27 +69,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4Material* Soil = new G4Material("Soil", z = 11., a = 22. * g / mole, density = 2.1 * g / cm3);
 
 	//Concrete
-	G4Material* HMaterial = new G4Material("Hydrogen_mat", z = 1., a = 1.01 * g / mole, density = 0.08 * mg / cm3);
-	G4Material* OMaterial = new G4Material("Oxygen_mat", z = 8., a = 16.00 * g / mole, density = 1.332 * mg / cm3);
-	G4Material* NaMaterial = new G4Material("Sodium_mat", z = 11., a = 22.99 * g / mole, density = 0.971 * g / cm3);
-	G4Material* HgMaterial = new G4Material("Mercury_mat", z = 80., a = 200.59 * g / mole, density = 13.55 * g / cm3);
-	G4Material* SiMaterial = new G4Material("Silicon_mat", z = 14., a = 28.09 * g / mole, density = 2.329 * g / cm3);
-	G4Material* KMaterial = new G4Material("Kalium_mat", z = 19., a = 39.1 * g / mole, density = 0.862 * g / cm3);
-	G4Material* CaMaterial = new G4Material("Calcium_mat", z = 20., a = 40.08 * g / mole, density = 1.55 * g / cm3);
-	G4Material* FeMaterial = new G4Material("Ferrum_mat", z = 26., a = 55.85 * g / mole, density = 7.87 * g / cm3);
-	G4Material* CMaterial = new G4Material("Carbon_mat", z = 6., a = 12.01 * g / mole, density = 2. * g / cm3);
-
 	G4Material* Concrete = new G4Material("Concrete", density = 2.3 * g / cm3, ncomponents = 10);
-  	Concrete->AddMaterial(HMaterial, fractionmass = 0.01 * perCent);
-  	Concrete->AddMaterial(OMaterial, fractionmass = 0.529 * perCent);
-  	Concrete->AddMaterial(NaMaterial, fractionmass = 0.016 * perCent);
-  	Concrete->AddMaterial(HgMaterial, fractionmass = 0.002 * perCent);
-  	Concrete->AddMaterial(AlMaterial, fractionmass = 0.034 * perCent);
-  	Concrete->AddMaterial(SiMaterial, fractionmass = 0.337 * perCent);
-  	Concrete->AddMaterial(KMaterial, fractionmass = 0.013 * perCent);
-  	Concrete->AddMaterial(CaMaterial, fractionmass = 0.044 * perCent);
-  	Concrete->AddMaterial(FeMaterial, fractionmass = 0.014 * perCent);
-  	Concrete->AddMaterial(CMaterial, fractionmass = 0.001 * perCent);
+  	Concrete->AddElement(elH, fractionmass = 0.01);
+  	Concrete->AddElement(elO, fractionmass = 0.529);
+  	Concrete->AddElement(elNa, fractionmass = 0.016);
+  	Concrete->AddElement(elHg, fractionmass = 0.002);
+  	Concrete->AddElement(elAl, fractionmass = 0.034);
+  	Concrete->AddElement(elSi, fractionmass = 0.337);
+  	Concrete->AddElement(elK, fractionmass = 0.013);
+  	Concrete->AddElement(elCa, fractionmass = 0.044);
+  	Concrete->AddElement(elFe, fractionmass = 0.014);
+  	Concrete->AddElement(elC, fractionmass = 0.001);
 
 	//Polyethylene
 	G4Material* C2H4 = new G4Material("Polyethylene", density = 0.89 * g / cm3, ncomponents = 2);
