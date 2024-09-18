@@ -4,6 +4,7 @@
 #include "G4NistManager.hh"
 #include "G4Box.hh"
 #include "G4Cons.hh"
+#include "G4Ellipsoid.hh"
 #include "G4Orb.hh"
 #include "G4Sphere.hh"
 #include "G4Cons.hh"
@@ -149,22 +150,29 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4double WaterHeight = PEFilmHeight - PEFilmThickness;
 
 	//PMT glass dimensions 
+	G4double UpperPartHAX = 133 * mm, UpperPartHAY = 133 * mm, UpperPartHAZ = 133 * mm;
+	G4double UpperPartCut = 81.5 * mm, UpperPartDeposit = 44 * mm; 
 
 	//Coordinates
 	G4double XCyl = 0. * m, YCyl = 0. * m, ZCyl = 0. * m;												//Soil cylinder coordinates
 	G4double XMount = XCyl, YMount = YCyl, ZMount = 0.5 * (CylHeight + MountHeight) + TankThickness;	//Soil mount coordinates
 	G4double XTank = XCyl, YTank = YCyl, ZTank = ZCyl;													//Concrete tank coordinates
-	G4double XPEFilm = XCyl, YPEFilm = YCyl, ZPEFilm = ZCyl;											//Concrete tank coordinates
-	G4double XWater = XCyl, YWater = YCyl, ZWater = ZCyl;												//Concrete tank coordinates
+	G4double XPEFilm = XCyl, YPEFilm = YCyl, ZPEFilm = ZCyl;											//PE film coordinates
+	G4double XWater = XCyl, YWater = YCyl, ZWater = ZCyl;												//Water volume coordinates
+	G4double XUpperPartGlass = XCyl, YUpperPartGlass = YCyl, ZUpperPartGlass = 0.5 * WaterHeight - UpperPartHAZ + UpperPartDeposit;
 
 	//Volumes
 	G4Cons* solidSoilMount = {nullptr};
 
+	G4Ellipsoid* solidUpperPartGlass = {nullptr};
+
 	G4Tubs* solidSoilCylinder = {nullptr}, * solidTank = {nullptr}, * solidWaterVolume = {nullptr}, * solidPEFilm = {nullptr};
 
-	G4LogicalVolume* logicSoilMount = {nullptr}, * logicSoilCylinder = {nullptr}, * logicTank = {nullptr}, * logicWaterVolume = {nullptr}, * logicPEFilm = {nullptr};
+	G4LogicalVolume* logicSoilMount = {nullptr}, * logicSoilCylinder = {nullptr}, * logicTank = {nullptr}, * logicWaterVolume = {nullptr}, * logicPEFilm = {nullptr}, 
+		* logicUpperPartGlass = {nullptr};
 
-	G4VPhysicalVolume* physSoilMount = {nullptr}, * physSoilCylinder = {nullptr}, * physTank = {nullptr}, * physWaterVolume = {nullptr}, * physPEFilm = {nullptr};
+	G4VPhysicalVolume* physSoilMount = {nullptr}, * physSoilCylinder = {nullptr}, * physTank = {nullptr}, * physWaterVolume = {nullptr}, * physPEFilm = {nullptr}, 
+		* physUpperPartGlass = {nullptr};
 
 	//Building water tank
 	solidSoilCylinder = new G4Tubs("Cyl_s", CylInnerRad, CylOuterRad, 0.5 * CylHeight, StartPhi, StopPhi);
@@ -187,6 +195,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	logicWaterVolume = new G4LogicalVolume(solidWaterVolume, Water, "Water_l");
 	physWaterVolume = new G4PVPlacement(0, G4ThreeVector(XWater, YWater, ZWater), logicWaterVolume, "WATER_VOLUME", logicPEFilm, false, 0, checkOverlaps);
 
+	solidUpperPartGlass = new G4Ellipsoid("UpperPartGlass_s", UpperPartHAX, UpperPartHAY, UpperPartHAZ, -133 * mm, - UpperPartCut);
+	logicUpperPartGlass = new G4LogicalVolume(solidUpperPartGlass, BoronSilicateGlass, "UpperPartGlass_l");
+	physUpperPartGlass = new G4PVPlacement(0, G4ThreeVector(XUpperPartGlass, YUpperPartGlass, ZUpperPartGlass), logicUpperPartGlass, "UPPER_PART_GLASS", logicWaterVolume, false, 0, checkOverlaps);
 
 	return physWorld;
 }
