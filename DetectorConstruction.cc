@@ -15,6 +15,7 @@
 #include "G4SystemOfUnits.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
+#include "G4NistManager.hh"
 
 #include "G4SubtractionSolid.hh"
 #include "G4RotationMatrix.hh"
@@ -107,9 +108,56 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	BoronSilicateGlass->AddMaterial(Al2O3, fractionmass = 4. * perCent);
 	BoronSilicateGlass->AddMaterial(Na2O, fractionmass = 2. * perCent);
 
+	//Vacuum inside PMT
+	G4NistManager * NIST_man = G4NistManager::Instance();
+	G4Material * Vacuum = NIST_man->FindOrBuildMaterial("G4_Galactic");
+
+
 	
 	/*	OPTICAL PROPERTIES */
 
+	//Distillated water optical properties
+	std::vector<G4double> PhotonEnergyWater = {
+    	2.034 * eV, 2.068 * eV, 2.103 * eV, 2.139 * eV, 2.177 * eV, 2.216 * eV,
+    	2.256 * eV, 2.298 * eV, 2.341 * eV, 2.386 * eV, 2.433 * eV, 2.481 * eV,
+    	2.532 * eV, 2.585 * eV, 2.640 * eV, 2.697 * eV, 2.757 * eV, 2.820 * eV,
+    	2.885 * eV, 2.954 * eV, 3.026 * eV, 3.102 * eV, 3.181 * eV, 3.265 * eV
+	};
+
+	std::vector<G4double> RefractiveIndexWater = {
+		1.3435, 1.344,  1.3445, 1.345,  1.3455, 1.346,  1.3465, 1.347,
+    	1.3475, 1.348,  1.3485, 1.3492, 1.35,   1.3505, 1.351,  1.3518,
+    	1.3522, 1.3530, 1.3535, 1.354,  1.3545, 1.355,  1.3555, 1.356
+	}; 
+
+	std::vector<G4double> AbsorptionLengthWater = {
+		3.448 * m,  4.082 * m,  6.329 * m,  9.174 * m,  12.346 * m, 13.889 * m,
+    	15.152 * m, 17.241 * m, 18.868 * m, 20.000 * m, 26.316 * m, 35.714 * m,
+    	45.455 * m, 47.619 * m, 52.632 * m, 52.632 * m, 55.556 * m, 52.632 * m,
+    	52.632 * m, 47.619 * m, 45.455 * m, 41.667 * m, 37.037 * m, 33.333 * m
+	};
+
+
+	G4MaterialPropertiesTable* WaterOptProperties = new G4MaterialPropertiesTable();
+	WaterOptProperties->AddProperty("RINDEX", PhotonEnergyWater, RefractiveIndexWater, PhotonEnergyWater.size());
+	WaterOptProperties->AddProperty("ABSLENGTH", PhotonEnergyWater, AbsorptionLengthWater, PhotonEnergyWater.size());
+
+	//BoronSilicate Glass optical properties
+	G4double PhotonEnergy[2] = {1.9 * eV, 3.3 * eV};
+	G4double RefractiveIndexGlass[2] = {1.5, 1.5};
+	G4double AbsorptionLengthGlass[2] = {5. * m, 5. * m};
+
+	G4MaterialPropertiesTable* GlassPropertiesTable = new G4MaterialPropertiesTable();
+	GlassPropertiesTable->AddProperty("RINDEX", PhotonEnergy, RefractiveIndexGlass, 2);
+	GlassPropertiesTable->AddProperty("ABSLENGTH", PhotonEnergy, AbsorptionLengthGlass, 2);
+
+	//Air optical properties
+	G4double RefractiveIndexAir[2] = {1.0002926, 1.0002926};
+	G4double AbsorptionLengthAir[2] = {100. * m, 100. * m};
+
+	G4MaterialPropertiesTable* AirPropertiesTable = new G4MaterialPropertiesTable();
+	AirPropertiesTable->AddProperty("RINDEX", PhotonEnergy, RefractiveIndexAir, 2);
+	AirPropertiesTable->AddProperty("ABSLENGTH", PhotonEnergy, AbsorptionLengthAir, 2);
 
 	/*	CHERENKOV WATER TANK	*/
 	G4bool checkOverlaps = true;
@@ -123,56 +171,77 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4LogicalVolume* logicWorld = new G4LogicalVolume(solidWorld, Air, "World_l");
 	G4VPhysicalVolume* physWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, checkOverlaps);
 
+	//Water volume dimensions
+	G4double WaterInnerRad = 0. * m, WaterOuterRad = 0.6 * m;
+	G4double WaterHeight = 1.2 * m;
+
+	//Polyethylene film dimensions
+	G4double PEFilmThickness = 0.2 * mm;
+	G4double PEFilmInnerRad = 0. * m, PEFilmOuterRad = 0.6 * m + 0.5 * PEFilmThickness;
+	G4double PEFilmHeight = WaterHeight + PEFilmThickness;
+
+	//Concrete tank dimensions
+	G4double TankThickness = 100 * mm;
+	G4double TankInnerRad = 0. * m, TankOuterRad = PEFilmOuterRad + TankThickness;
+	G4double TankHeight = PEFilmHeight;
+
+	//Soil cylinder dimensions
+	G4double CyLThikness = 2 * m;
+	G4double CylInnerRad = 0. * m, CylOuterRad = TankOuterRad + CyLThikness;
+	G4double CylHeight = TankHeight;
 
 	//Soil mount dimensions
 	G4double MountUpInnerRad = 0. * m, MountDownInnerRad = 0. * m;
-	G4double MountUpOuterRad = 0.61 * m;
-	G4double MountDownOuterRad = 2.61 * m;
+	G4double MountUpOuterRad = TankOuterRad;
+	G4double MountDownOuterRad = CylOuterRad;
 	G4double MountHeight = 2. * m;
 	G4double StartPhi = 0. * deg, StopPhi = 360. * deg;
 
-	//Soil cylinder dimensions
-	G4double CylInnerRad = 0. * m, CylOuterRad = 2.61 * m;
-	G4double CylHeight = 1. * m;
-
-	//Concrete tank dimensions
-	G4double TankInnerRad = 0. * m, TankOuterRad = 0.610 * m;
-	G4double TankHeight = CylHeight;
-	G4double TankThickness = 0.01 * mm;
-
-	//Polyethylene film dimensions
-	G4double PEFilmInnerRad = 0. * m, PEFilmOuterRad = 0.6 * m;
-	G4double PEFilmHeight = TankHeight - TankThickness;
-	G4double PEFilmThickness = 0.2 * mm;
-
-	//Water volume dimensions
-	G4double WaterInnerRad = 0. * m, WaterOuterRad = PEFilmOuterRad - PEFilmThickness;
-	G4double WaterHeight = PEFilmHeight - PEFilmThickness;
-
 	//PMT glass dimensions 
-	G4double UpperPartHAX = 133 * mm, UpperPartHAY = 133 * mm, UpperPartHAZ = 133 * mm;
-	G4double UpperPartCut = 81.5 * mm, UpperPartDeposit = 44 * mm; 
+	G4double UpperPartHAX = 133. * mm, UpperPartHAY = 133. * mm, UpperPartHAZ = 133. * mm;
+	G4double UpperPartCut = 82. * mm, UpperPartDeposit = 82. * mm; 
+
+	G4double MidConeUpOuterRad = 121 * mm, MidConeDownOuterRad = 104.8 * mm;
+	G4double MidConeDownInnerRad = 0. * mm, MidConeUpInnerRad = 0. * mm;
+	G4double MidConeHeight = 14.5 * mm;
+
+	G4double MidEllipsHAX = 133. * mm, MidEllipsHAY = 133. * mm, MidEllipsHAZ = 79. * mm;
+	G4double MidEllipseUpperCut = 35.25 * mm, MidEllipseDownCut = 32.8 * mm, MidEllipseDeposit = 35.25 * mm;
+
+	G4double UpperConeUpOuterRad = 43. * mm, UpperConeDownOuterRad = 119. * mm;
+	G4double UpperConeUpInnerRad = 0. * mm, UpperConeDownInnerRad = 0. * mm;
+	G4double UpperConeHeight = 58. * mm;
+
+	G4double GlassThickness = 2. * mm, PhotoCathodeThickness = 0.2 * mm;
+	G4double GlassThicknessCone = 2.638 * mm;
 
 	//Coordinates
-	G4double XCyl = 0. * m, YCyl = 0. * m, ZCyl = 0. * m;												//Soil cylinder coordinates
-	G4double XMount = XCyl, YMount = YCyl, ZMount = 0.5 * (CylHeight + MountHeight) + TankThickness;	//Soil mount coordinates
-	G4double XTank = XCyl, YTank = YCyl, ZTank = ZCyl;													//Concrete tank coordinates
-	G4double XPEFilm = XCyl, YPEFilm = YCyl, ZPEFilm = ZCyl;											//PE film coordinates
-	G4double XWater = XCyl, YWater = YCyl, ZWater = ZCyl;												//Water volume coordinates
-	G4double XUpperPartGlass = XCyl, YUpperPartGlass = YCyl, ZUpperPartGlass = 0.5 * WaterHeight - UpperPartHAZ + UpperPartDeposit;
+	G4double XCyl = 0. * m, YCyl = 0. * m, ZCyl = 0. * m;																			//Soil cylinder coordinates
+	G4double XMount = XCyl, YMount = YCyl, ZMount = 0.5 * (CylHeight + MountHeight);												//Soil mount coordinates
+	G4double XTank = XCyl, YTank = YCyl, ZTank = ZCyl;																				//Concrete tank coordinates
+	G4double XPEFilm = XCyl, YPEFilm = YCyl, ZPEFilm = ZCyl;																		//PE film coordinates
+	G4double XWater = XCyl, YWater = YCyl, ZWater = ZCyl;																			//Water volume coordinates
+
+	//PMT parts coordinates
+	G4double XUpperCone = XCyl, YUpperCone = YCyl, ZUpperCone = 0.5 * (WaterHeight - UpperConeHeight);
+	G4double XMidEllipse = XCyl, YMidEllipse = YCyl, ZMidEllipse = ZUpperCone - 0.5 * UpperConeHeight - MidEllipseDeposit;
+	G4double XMidCone = XCyl, YMidCone = YCyl, ZMidCone = ZMidEllipse - MidEllipseDownCut - 0.5 * MidConeHeight;
+	G4double XUpperPartGlass = XCyl, YUpperPartGlass = YCyl, ZUpperPartGlass = 0.5 * WaterHeight - UpperConeHeight - (MidEllipseUpperCut + MidEllipseDownCut) - MidConeHeight + UpperPartCut;
 
 	//Volumes
-	G4Cons* solidSoilMount = {nullptr};
+	G4Cons* solidSoilMount = {nullptr}, * solidMidCone = {nullptr}, * solidUpperCone = {nullptr}, * solidMidConeVac = {nullptr}, * solidUpperConeVac = {nullptr}, * solidDownPhotCath = {nullptr};
 
-	G4Ellipsoid* solidUpperPartGlass = {nullptr};
+	G4Ellipsoid* solidUpperPartGlass = {nullptr}, * solidMidEllipse = {nullptr}, * solidUpperPartVac = {nullptr}, * solidMidEllipseVac = {nullptr}, * solidUpPhotCath = {nullptr};
 
 	G4Tubs* solidSoilCylinder = {nullptr}, * solidTank = {nullptr}, * solidWaterVolume = {nullptr}, * solidPEFilm = {nullptr};
 
 	G4LogicalVolume* logicSoilMount = {nullptr}, * logicSoilCylinder = {nullptr}, * logicTank = {nullptr}, * logicWaterVolume = {nullptr}, * logicPEFilm = {nullptr}, 
-		* logicUpperPartGlass = {nullptr};
+		* logicUpperPartGlass = {nullptr}, * logicMidCone = {nullptr}, * logicMidEllipse = {nullptr}, * logicUpperCone = {nullptr}, * logicMidConeVac = {nullptr},
+		 * logicUpperConeVac = {nullptr}, * logicUpperPartVac = {nullptr}, * logicMidEllipseVac = {nullptr}, * logicDownPhotCath = {nullptr}, * logicUpPhotCath = {nullptr};
 
 	G4VPhysicalVolume* physSoilMount = {nullptr}, * physSoilCylinder = {nullptr}, * physTank = {nullptr}, * physWaterVolume = {nullptr}, * physPEFilm = {nullptr}, 
-		* physUpperPartGlass = {nullptr};
+		* physUpperPartGlass = {nullptr}, * physMidCone = {nullptr}, * physMidEllipse = {nullptr}, * physUpperCone = {nullptr}, * physMidConeVac = {nullptr},
+		 * physUpperConeVac = {nullptr}, * physUpperPartVac = {nullptr}, * physMidEllipseVac = {nullptr}, * physDownPhotCath = {nullptr}, * physUpPhotCath = {nullptr};
 
 	//Building water tank
 	solidSoilCylinder = new G4Tubs("Cyl_s", CylInnerRad, CylOuterRad, 0.5 * CylHeight, StartPhi, StopPhi);
@@ -195,9 +264,107 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	logicWaterVolume = new G4LogicalVolume(solidWaterVolume, Water, "Water_l");
 	physWaterVolume = new G4PVPlacement(0, G4ThreeVector(XWater, YWater, ZWater), logicWaterVolume, "WATER_VOLUME", logicPEFilm, false, 0, checkOverlaps);
 
-	solidUpperPartGlass = new G4Ellipsoid("UpperPartGlass_s", UpperPartHAX, UpperPartHAY, UpperPartHAZ, -133 * mm, - UpperPartCut);
+	//Building PMT
+	solidUpperPartGlass = new G4Ellipsoid("UpperPartGlass_s", UpperPartHAX, UpperPartHAY, UpperPartHAZ, -UpperPartHAZ, - UpperPartCut);
 	logicUpperPartGlass = new G4LogicalVolume(solidUpperPartGlass, BoronSilicateGlass, "UpperPartGlass_l");
 	physUpperPartGlass = new G4PVPlacement(0, G4ThreeVector(XUpperPartGlass, YUpperPartGlass, ZUpperPartGlass), logicUpperPartGlass, "UPPER_PART_GLASS", logicWaterVolume, false, 0, checkOverlaps);
+
+	solidMidCone = new G4Cons("MidCone_s", MidConeDownInnerRad, MidConeDownOuterRad, MidConeUpInnerRad, MidConeUpOuterRad, 0.5 * MidConeHeight, StartPhi, StopPhi);
+	logicMidCone = new G4LogicalVolume(solidMidCone, BoronSilicateGlass, "MidCone_l");
+	physMidCone = new G4PVPlacement(0, G4ThreeVector(XMidCone, YMidCone, ZMidCone), logicMidCone, "CONICAL_GLASS_PART", logicWaterVolume, false, 0, checkOverlaps);
+
+	solidMidEllipse = new G4Ellipsoid("MidEllipse_s", MidEllipsHAX, MidEllipsHAY, MidEllipsHAZ, -MidEllipseDownCut, MidEllipseUpperCut);
+	logicMidEllipse = new G4LogicalVolume(solidMidEllipse, BoronSilicateGlass, "MidEllipse_l");
+	physMidEllipse = new G4PVPlacement(0, G4ThreeVector(XMidEllipse, YMidEllipse, ZMidEllipse), logicMidEllipse, "MID_ELLIPTICAL_PART_GLASS", logicWaterVolume, false, 0, checkOverlaps);
+
+	solidUpperCone = new G4Cons("UpperCone_s", UpperConeDownInnerRad, UpperConeDownOuterRad, UpperConeUpInnerRad, UpperConeUpOuterRad, 0.5 * UpperConeHeight, StartPhi, StopPhi);
+	logicUpperCone = new G4LogicalVolume(solidUpperCone, BoronSilicateGlass, "UpperCone_l");
+	physUpperCone = new G4PVPlacement(0, G4ThreeVector(XUpperCone, YUpperCone, ZUpperCone), logicUpperCone, "UPPER_CONICAL_GLASS_PART", logicWaterVolume, false, 0, checkOverlaps);
+
+	//Photocathode and vacuum inside PMT
+	solidUpPhotCath = new G4Ellipsoid("UpperPartPhotCath_s", UpperPartHAX - GlassThickness, UpperPartHAY - GlassThickness, UpperPartHAZ - GlassThickness, -UpperPartHAZ, - UpperPartCut);
+	logicUpPhotCath = new G4LogicalVolume(solidUpPhotCath, AlMaterial, "UpperPartPhotCth_l");
+	physUpPhotCath = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicUpPhotCath, "PHOTOCATHODE_1", logicUpperPartGlass, false, 0, checkOverlaps);
+
+	solidUpperPartVac = new G4Ellipsoid("UpperPartVac_s", UpperPartHAX - GlassThickness - PhotoCathodeThickness, UpperPartHAY - GlassThickness - PhotoCathodeThickness, 
+		UpperPartHAZ - GlassThickness - PhotoCathodeThickness, -UpperPartHAZ, - UpperPartCut);
+		
+	logicUpperPartVac = new G4LogicalVolume(solidUpperPartVac, Vacuum, "UpperPartVac_l");
+	physUpperPartVac = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicUpperPartVac, "VACUUM_1", logicUpPhotCath, false, 0, checkOverlaps);
+
+	solidDownPhotCath = new G4Cons("DownPartPhotCath_s", MidConeDownInnerRad, MidConeDownOuterRad - GlassThicknessCone, MidConeUpInnerRad, MidConeUpOuterRad - GlassThicknessCone,
+		 0.5 * MidConeHeight, StartPhi, StopPhi);
+
+	logicDownPhotCath = new G4LogicalVolume(solidDownPhotCath, AlMaterial, "DownPartPhotCath_l");
+	physDownPhotCath = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicDownPhotCath, "PHOTOCATHODE_2", logicMidCone, false, 0, checkOverlaps);
+
+	solidMidConeVac = new G4Cons("MidConeVac_s", MidConeDownInnerRad, MidConeDownOuterRad - GlassThicknessCone - PhotoCathodeThickness, MidConeUpInnerRad, 
+		MidConeUpOuterRad - GlassThicknessCone - PhotoCathodeThickness, 0.5 * MidConeHeight, StartPhi, StopPhi);
+
+	logicMidConeVac = new G4LogicalVolume(solidMidConeVac, Vacuum, "MidConeVac_s");
+	physMidConeVac = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicMidConeVac, "VACUUM_2", logicDownPhotCath, false, 0, checkOverlaps);
+
+	solidMidEllipseVac = new G4Ellipsoid("MidEllipseVac_s", MidEllipsHAX - GlassThickness, MidEllipsHAY - GlassThickness, MidEllipsHAZ - GlassThickness, -MidEllipseDownCut, MidEllipseUpperCut);	
+	logicMidEllipseVac = new G4LogicalVolume(solidMidEllipseVac, Vacuum, "MidEllipseVac_l");
+	physMidEllipseVac = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicMidEllipseVac, "VACUUM_3", logicMidEllipse, false, 0, checkOverlaps);
+
+	solidUpperConeVac = new G4Cons("UpperConeVac_s", UpperConeDownInnerRad, UpperConeDownOuterRad - GlassThicknessCone, UpperConeUpInnerRad, UpperConeUpOuterRad - GlassThicknessCone,
+		 0.5 * UpperConeHeight, StartPhi, StopPhi);
+
+	logicUpperConeVac = new G4LogicalVolume(solidUpperConeVac, Vacuum, "UpperConeVac_l");
+	physUpperConeVac = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicUpperConeVac, "VACUUM_4", logicUpperCone, false, 0, checkOverlaps);
+
+
+
+	/*	OPTICAL SURFACES	*/
+
+	//Border water - tyvek: diffuse reflection
+	G4double ReflectivityWaterTyvek[2] = {0.98, 0.98};
+	
+	G4OpticalSurface* OpSurfaceWaterTyvek = new G4OpticalSurface("SurfaceWaterTyvek");
+	OpSurfaceWaterTyvek->SetType(dielectric_dielectric);
+	OpSurfaceWaterTyvek->SetFinish(groundfrontpainted);
+	OpSurfaceWaterTyvek->SetModel(unified);
+
+	G4MaterialPropertiesTable* SurWaterTyvekPT = new G4MaterialPropertiesTable();
+	SurWaterTyvekPT->AddProperty("REFLECTIVITY", PhotonEnergy, ReflectivityWaterTyvek, 2);
+	OpSurfaceWaterTyvek->SetMaterialPropertiesTable(SurWaterTyvekPT);
+
+	G4LogicalBorderSurface* TyvekSurface = {nullptr};
+	TyvekSurface = new G4LogicalBorderSurface("WaterTyvekSurface", physWaterVolume, physPEFilm, OpSurfaceWaterTyvek);
+
+	//Border polyethylene - concrete: absorption
+	G4double ReflectivityPEConcrete[2] = {0., 0.};
+	
+	G4OpticalSurface* OpSurfacePEConcrete = new G4OpticalSurface("SurfacePEConcrete");
+	OpSurfacePEConcrete->SetType(dielectric_dielectric);
+	OpSurfacePEConcrete->SetFinish(groundfrontpainted);
+	OpSurfacePEConcrete->SetModel(unified);
+
+	G4MaterialPropertiesTable* SurPEConcretePT = new G4MaterialPropertiesTable();
+	SurPEConcretePT->AddProperty("REFLECTIVITY", PhotonEnergy, ReflectivityPEConcrete, 2);
+	OpSurfacePEConcrete->SetMaterialPropertiesTable(SurPEConcretePT);
+
+	G4LogicalBorderSurface* PESurface = {nullptr};
+	PESurface = new G4LogicalBorderSurface("PEConcreteSurface", physPEFilm, physTank, OpSurfacePEConcrete);
+
+	//Border boronsilicate glass - photocathode: mirror reflection
+	G4double ReflectivityPhotocathode[2] = {0.99, 0.99};
+	
+	G4OpticalSurface* OpSurfaceGlassPhotocathode = new G4OpticalSurface("SurfaceGlassPhotocathode");
+	OpSurfaceGlassPhotocathode->SetType(dielectric_metal);
+	OpSurfaceGlassPhotocathode->SetFinish(ground);
+	OpSurfaceGlassPhotocathode->SetModel(glisur);
+
+	G4MaterialPropertiesTable* SurGlassPhotocathode = new G4MaterialPropertiesTable();
+	SurGlassPhotocathode->AddProperty("REFLECTIVITY", PhotonEnergy, ReflectivityPhotocathode, 2);
+	OpSurfaceGlassPhotocathode->SetMaterialPropertiesTable(SurGlassPhotocathode);
+
+	G4LogicalBorderSurface* UpperPhotCathSurface = {nullptr}, * LowerUpperPhotCathSurface = {nullptr};
+	UpperPhotCathSurface = new G4LogicalBorderSurface("UpperPhotocathodeSurface", physUpperPartGlass, physUpPhotCath, OpSurfaceGlassPhotocathode);
+	LowerUpperPhotCathSurface= new G4LogicalBorderSurface("LowerPhotocathodeSurface", physMidCone, physDownPhotCath, OpSurfaceGlassPhotocathode);
+
+	/*	VISUAL ATTRIBUTES	*/
 
 	return physWorld;
 }
