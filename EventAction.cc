@@ -7,20 +7,24 @@
 
 #include "G4Event.hh"
 #include "G4RunManager.hh"
+#include <fstream>
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-extern long int Nph[1152];
+extern long int Nph;
 extern G4int Nevent;
 extern std::ofstream PhEffect;
+extern std::ofstream CHARGED;
+char charged_file_path[1500];
+char event_file_path[1500];
 
-extern float Tph[1152][200000];
-extern float Eph[1152][200000];
+extern std::vector<double> Tph;
+extern std::vector<double> Eph;
 //extern G4double x0, yy0, z0, teta, phi, x, y, z, ux, uy, uz;
 //extern G4double strx, stry, strz, strux, struy, struz;
 //extern char fpartname[7];
-extern char NazFile[1500];
 
-long int q, p;
+long int q;
 
 EventAction::EventAction(RunAction* runAction)
 : G4UserEventAction(), fRunAction(runAction)
@@ -30,43 +34,39 @@ EventAction::EventAction(RunAction* runAction)
 
 void EventAction::BeginOfEventAction(const G4Event*)
 {    
-    //std::fill(Eph[0][0], Eph[1152][200000], 0);
-    //std::fill(Tph[0][0], Tph[1152][200000], 0);
-    std::fill_n(Nph, 1152, 0);
-
-     for (p = 0; p < 1152; p++)
-     {
-         for(q = 0; q < 200000; q++)
-         {
-             Tph[p][q] = 0;
-             Eph[p][q] = 0;
-         }
-     } 
+    Nph = 0;
+    Eph.clear();
+    Tph.clear();
+    
+    sprintf(charged_file_path, "E:\\TAIGA_\\CHARGED_MATRIX\\M01\\ChargedMatrix%05d.dat", Nevent);
+    CHARGED.open(charged_file_path, std::ios_base::trunc);
+    if (CHARGED.is_open()) 
+    {
+        CHARGED << "Particle" << "\t" << "Energy, MeV" << "\t" << "X" << "\t" << "Y" << "\t" << "Z" << std::endl;
+    }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void EventAction::EndOfEventAction(const G4Event*)
 {   
-    G4int NumSiPM, NumPhot;
+   G4int NumPhot;
 
-    sprintf(NazFile, "D:\\MMH_reconst_data\\EVENTS_DATA\\EventM%05d.dat", Nevent);
-    PhEffect.open(NazFile, std::ios_base::trunc);
+    sprintf(event_file_path, "E:\\TAIGA_PHOTONS_DATA\\EVENTS_DATA\\M01\\Event%05d.dat", Nevent);
+    PhEffect.open(event_file_path, std::ios_base::trunc);
     if(PhEffect.is_open())
     {
-       PhEffect << "Energy" << "\t" << "Time" << "\t" << "Ncopy" << std::endl;
-       for(NumSiPM = 0; NumSiPM < 1152; NumSiPM++)
-       {
-            for (NumPhot = 0; NumPhot < Nph[NumSiPM]; NumPhot++)
-            {
-                PhEffect << Eph[NumSiPM][NumPhot] << "\t" <<  Tph[NumSiPM][NumPhot] << "\t" << NumSiPM << std::endl;
-            }
-       }
+        PhEffect << "Energy" << "\t" << "Time" << std::endl;
+        for(NumPhot = 0; NumPhot < Nph; NumPhot++)
+        {
+            PhEffect << Eph[NumPhot] << "\t" <<  Tph[NumPhot] << std::endl;
+        }
         
     }
-    //G4cout << "Number of event: " << Nevent << G4endl;
+    G4cout << "Number of event: " << Nevent << G4endl;
     PhEffect.close();
-    Nevent++;
+    CHARGED.close();
+    Nevent++; 
     
 }
 

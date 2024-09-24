@@ -283,7 +283,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 	//Photocathode and vacuum inside PMT
 	solidUpPhotCath = new G4Ellipsoid("UpperPartPhotCath_s", UpperPartHAX - GlassThickness, UpperPartHAY - GlassThickness, UpperPartHAZ - GlassThickness, -UpperPartHAZ, - UpperPartCut);
-	logicUpPhotCath = new G4LogicalVolume(solidUpPhotCath, AlMaterial, "UpperPartPhotCth_l");
+	logicUpPhotCath = new G4LogicalVolume(solidUpPhotCath, AlMaterial, "UpperPartPhotCath_l");
 	physUpPhotCath = new G4PVPlacement(0, G4ThreeVector(0. * mm, 0. * mm, 0. * mm), logicUpPhotCath, "PHOTOCATHODE_1", logicUpperPartGlass, false, 0, checkOverlaps);
 
 	solidUpperPartVac = new G4Ellipsoid("UpperPartVac_s", UpperPartHAX - GlassThickness - PhotoCathodeThickness, UpperPartHAY - GlassThickness - PhotoCathodeThickness, 
@@ -365,6 +365,60 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	LowerUpperPhotCathSurface= new G4LogicalBorderSurface("LowerPhotocathodeSurface", physMidCone, physDownPhotCath, OpSurfaceGlassPhotocathode);
 
 	/*	VISUAL ATTRIBUTES	*/
+
+	//Colours
+	G4Colour grey(0.5, 0.5, 0.5);
+	G4Colour black(0.0, 0.0, 0.0);
+	G4Colour red(1.0, 0.0, 0.0);
+	G4Colour green(0.0, 1.0, 0.0);
+	G4Colour blue(0.0, 0.0, 1.0);
+	G4Colour cyan(0.0, 1.0, 1.0);
+	G4Colour magenta(1.0, 0.0, 1.0);
+	G4Colour yellow(1.0, 1.0, 0.0);
+
+	//Making world invisible
+	auto UniverseVisAtt = new G4VisAttributes(G4Colour(1.0, 1.0, 1.0));
+	UniverseVisAtt->SetVisibility(true);
+	UniverseVisAtt->SetForceWireframe(true);
+
+	logicWorld->SetVisAttributes(UniverseVisAtt);
+	logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+	//Water visual attributes
+	auto WaterVisAtt = new G4VisAttributes(blue);
+	WaterVisAtt->SetVisibility(true);
+	WaterVisAtt->SetForceSolid(true);
+
+	logicWaterVolume->SetVisAttributes(WaterVisAtt);
+	//logicTank->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+	//Boronsilicate glass visual attributes
+	auto GlassVisAtt = new G4VisAttributes(green);
+	GlassVisAtt->SetVisibility(true);
+	GlassVisAtt->SetForceSolid(true);
+
+	logicUpperPartGlass->SetVisAttributes(GlassVisAtt);
+	logicMidCone->SetVisAttributes(GlassVisAtt);
+	logicUpperCone->SetVisAttributes(GlassVisAtt);
+	logicMidEllipse->SetVisAttributes(GlassVisAtt);
+
+	//Photocathode visual attributes
+	auto PhotCathVisAtt = new G4VisAttributes(red);
+	PhotCathVisAtt->SetVisibility(true);
+	PhotCathVisAtt->SetForceSolid(true);
+
+	logicDownPhotCath->SetVisAttributes(PhotCathVisAtt);
+	logicUpPhotCath->SetVisAttributes(PhotCathVisAtt);
+
+	//Vacuum visual attributes
+	auto VacuumVisAtt = new G4VisAttributes(G4Colour(1.0, 1.0, 1.0));
+	VacuumVisAtt->SetVisibility(true);
+	VacuumVisAtt->SetForceSolid(true);
+
+	logicUpperConeVac->SetVisAttributes(VacuumVisAtt);
+	logicMidConeVac->SetVisAttributes(VacuumVisAtt);
+	logicUpperConeVac->SetVisAttributes(VacuumVisAtt);
+	logicMidEllipseVac->SetVisAttributes(VacuumVisAtt);
 
 	return physWorld;
 }

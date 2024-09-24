@@ -11,15 +11,17 @@
 #include "Randomize.hh"
 #include "G4PhysicalConstants.hh"
 
+#include <iostream>
+#include <fstream>
+
 G4double theta, phi, ux, uy, uz, E0;
-char fpartname[7];							//���������������, ���� ������ � ������ �� ���������, ��������� ������ ��������� �� ������������ �����
-G4int fEvent, fpartnum;
+char fpartname[7];							
 G4double ftheta, fphi, fEkin;
+G4int fEvent, fpartnum;
 
-
-G4double Length = 2. * m, Width = 2. * m;
-G4double x_min, x_max, y_min, y_max, z_mid;
-G4double x_rand, y_rand, z_rand, x_up, y_up, z_up;
+G4double TankRad = 0.6 * m;
+G4double z_mid, R_min, R_max, t_min, t_max;
+G4double x_rand, y_rand, z_rand, R_rand, t_rand, x_up, y_up, z_up;
 G4double X = 0. * m, Y = 0. * m, Z = 0. * m;
 extern G4double Z0const;
 
@@ -54,20 +56,19 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-	//Maximal and minimal X coordinate
-	x_min = X - 0.5 * Length;
-	x_max = X + 0.5 * Length;
+	//Circle radius where particle hits
+	R_min = 0. * m;
+	R_max = TankRad;
+	R_rand = R_min + (R_max - R_min) * G4UniformRand();
 
-	//Maximal and minimal Y coordinate
-	y_min = Y - 0.5 * Width;
-	y_max = Y + 0.5 * Width;
-
-	//Z coordinate of center
-	z_mid = Z;
+	//Parameter for circle equation
+	t_min = 0. * deg;
+	t_max = 360. * deg;
+	t_rand = t_min + (t_max - t_min) * G4UniformRand();
 
 	//Coordinates for random directions
-	x_rand = x_min + (x_max - x_min) * G4UniformRand();
-	y_rand = y_min + (y_max - y_min) * G4UniformRand();
+	x_rand = R_rand * cos(t_rand);
+	y_rand = R_rand * sin(t_rand);
 	z_rand = z_mid;
 
 	//Scanning particle data from file
@@ -87,9 +88,9 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	fParticleGun->SetParticleDefinition(particle);
 
 	//Launching position
-	x_up = x_rand + 500 * cm * sin(theta) * cos(phi);
-	y_up = y_rand + 500 * cm * sin(theta) * sin(phi);
-	z_up = z_rand + 500 * cm * cos(theta);
+	x_up = x_rand + 4500 * cm * sin(theta) * cos(phi);
+	y_up = y_rand + 4500 * cm * sin(theta) * sin(phi);
+	z_up = z_rand + 4500 * cm * cos(theta);
 
 	fParticleGun->SetParticlePosition(G4ThreeVector(x_up, y_up, z_up));
 
