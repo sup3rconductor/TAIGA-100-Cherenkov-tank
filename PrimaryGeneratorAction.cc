@@ -56,7 +56,7 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction()
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-	//Circle radius where particle hits
+	/*//Circle radius where particle hits
 	R_min = 0. * m;
 	R_max = TankRad;
 	R_rand = R_min + (R_max - R_min) * G4UniformRand();
@@ -75,7 +75,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	rdata >> fEvent >> fpartname >> fpartnum >> ftheta >> fphi >> fEkin;
 
 	std::cout << "Num of event: " << fEvent << "; " <<  "Particle name: " << fpartname << "; " << "Particle number: " << fpartnum << "; " << 
-	"Theta angle: " << ftheta << "; " << "Phi angle: " << fphi << "; " << "E: " << fEkin << std::endl;
+	"Theta angle: " << ftheta << "; " << "Phi angle: " << fphi << "; " << "E: " << fEkin << std::endl; 
 
 
 	//Converting degrees to radians
@@ -85,7 +85,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	//Setting type of particle to a particle gun
 	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 	G4ParticleDefinition* particle = particleTable->FindParticle(fpartname);
-	fParticleGun->SetParticleDefinition(particle);
+	fParticleGun->SetParticleDefinition(particle); 
 
 	//Launching position
 	x_up = x_rand + 4500 * cm * sin(theta) * cos(phi);
@@ -99,10 +99,20 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 	uy = -sin(theta) * sin(phi);
 	uz = -cos(theta); 
 
-	fParticleGun->SetParticleMomentumDirection(G4ThreeVector(ux, uy, uz));
+	fParticleGun->SetParticleMomentumDirection(G4ThreeVector(ux, uy, uz));*/
+
+	//Default - vertical muon with 4 GeV
+	G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+	G4String particleName;
+	G4ParticleDefinition* particle = particleTable->FindParticle(particleName = "mu+");
+	fParticleGun->SetParticleDefinition(particle);
+
+	fParticleGun->SetParticlePosition(G4ThreeVector(0.05 * m, 0.05 * m, 5. * m));
+	fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., -1.));
 
 	//Particle kinetic energy
-	fParticleGun->SetParticleEnergy(fEkin * GeV);
+	//fParticleGun->SetParticleEnergy(fEkin * GeV);
+	fParticleGun->SetParticleEnergy(4. * GeV);
 	fParticleGun->GeneratePrimaryVertex(anEvent);
 
 }

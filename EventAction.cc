@@ -37,8 +37,8 @@ void EventAction::BeginOfEventAction(const G4Event*)
     Nph = 0;
     Eph.clear();
     Tph.clear();
-    
-    sprintf(charged_file_path, "E:\\TAIGA_\\CHARGED_MATRIX\\M01\\ChargedMatrix%05d.dat", Nevent);
+
+    sprintf(charged_file_path, "E:\\TAIGA_SIMULATED_DATA\\CHARGED_MATRIX\\M03\\ChargedMatrix%05d.dat", Nevent);
     CHARGED.open(charged_file_path, std::ios_base::trunc);
     if (CHARGED.is_open()) 
     {
@@ -52,7 +52,7 @@ void EventAction::EndOfEventAction(const G4Event*)
 {   
    G4int NumPhot;
 
-    sprintf(event_file_path, "E:\\TAIGA_PHOTONS_DATA\\EVENTS_DATA\\M01\\Event%05d.dat", Nevent);
+    sprintf(event_file_path, "E:\\TAIGA_SIMULATED_DATA\\EVENTS_DATA\\M03\\Event%05d.dat", Nevent);
     PhEffect.open(event_file_path, std::ios_base::trunc);
     if(PhEffect.is_open())
     {
